@@ -10,6 +10,7 @@ namespace NexusSpawnScripts
     {
         static void Main(string[] args)
         {
+            //Test
         }
     }
 }
