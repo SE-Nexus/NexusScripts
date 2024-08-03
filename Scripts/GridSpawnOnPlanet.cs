@@ -1,4 +1,5 @@
-﻿using NGPlugin.BoundarySystem;
+﻿using NexusAPI.Utilities;
+using NGPlugin.BoundarySystem;
 using NGPlugin.BoundarySystem.Sectors;
 using NGPlugin.Config;
 using NGPlugin.Messages;
@@ -8,6 +9,7 @@ using Sandbox;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Planet;
+using Sandbox.Game.GameSystems;
 using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
@@ -36,9 +38,10 @@ namespace NGPlugin.Scripts.ExampleScripts
         private bool PrioritizeFactionMembers = false; //Will attempt to spawn near online faction members on planet (WIP)
         private bool PrioritizeAtmosphere = true; //Will attempt to find a planet with atmo first
         private string TargetPlanet = ""; //Specify a target planet. Leave blank for random on server
-        private float SpawnHeight = 0; //Leave 0 to spawn as close to the surface as possible
+        private float SpawnHeight = 50; //Leave 0 to spawn as close to the surface as possible
         private float ShipCollisionRadius = 20;
         private float MinAirDensity = 0f;
+        private int MaxIterations = 20;
 
 
         private Random rand = new Random(new Guid().GetHashCode());
@@ -64,20 +67,36 @@ namespace NGPlugin.Scripts.ExampleScripts
             if(allOptions.Count <= 0)
                 return;
 
+
+
             Log.Info("C");
-            BoundingBox box = GetSpawnShipBox(spawnReqMsg.SpawningGrids);
-            for (int i = 0; i < 30; i++)
+            BoundingBox ShipBox = GetSpawnShipBox(spawnReqMsg.SpawningGrids);
+            for (int i = 0; i < MaxIterations; i++)
             {
                 //Shuffle option
                 allOptions.ShuffleList();
                 //Get first index after shuffle
                 MyPlanet pTarget = allOptions[0];
 
-                Log.Info($"Attempting to spawn grids @ {pTarget.DisplayName}. Iteration: {i}");
-                Vector3D position = await AsyncInvoke.InvokeAsync(() => TryGetPlanetSpawn(pTarget, TargetServer, box.HalfExtents.Length()));
+                //Prioritize Atmo
+                if (!pTarget.HasAtmosphere && PrioritizeAtmosphere && MaxIterations > MaxIterations / 2)
+                    continue;
+
+
+
+                Log.Info($"Attempting to spawn grids @ {pTarget.Name}. Iteration: {i}");
+                Vector3D position = await AsyncInvoke.InvokeAsync(() => TryGetPlanetSpawn(pTarget, TargetServer, ShipBox.Extents.Length()));
+
+                RegionHandler.TryGetSmallestSector(position, out var sector);
+                if (sector.Data.OnServerID != TargetServer.ServerID)
+                {
+                    Log.Info($"No valid spawn position for {pTarget.Name} after {MaxIterations} attempts");
+                    continue;
+                }
+                    
 
                 //Found Valid position
-                if(position != null && position != Vector3D.Zero)
+                if (position != null && position != Vector3D.Zero)
                 {
                     spawnReqMsg.GridSpawnPosition = position;
                     return;
@@ -92,27 +111,6 @@ namespace NGPlugin.Scripts.ExampleScripts
             return;
         }
 
-        public BoundingSphereD GetMaxSearchArea()
-        {
-            BoundingSphereD Search = new BoundingSphereD();
-            List<SectorAPI> allSectors = TargetServer.ChildSectors;
-            if (allSectors.Count != 0)
-            {
-                int randInt = rand.Next(allSectors.Count);
-                TargetSector = allSectors[randInt];
-
-
-
-                Search = TargetSector.GetMaxBoundingSphereInside();
-            }
-
-            if (Search == null || Search.Radius == 0)
-                Search = new BoundingSphereD(Vector3D.Zero, 200000);
-
-            return Search;
-        }
-
-
         public List<MyPlanet> GetTargetPlanets(ServerAPI TargetServer)
         {
             // Attempt to get target planet from name
@@ -124,30 +122,45 @@ namespace NGPlugin.Scripts.ExampleScripts
 
                 if (myPlanets == null || myPlanets.Count == 0)
                     Log.Fatal($"Failed to find a planet with the name of: \"{TargetPlanet}\". One will be provided automatically...");
+                else
+                    return myPlanets;
 
-                return myPlanets;
+
+                myPlanets.Clear();
             }
             
 
             // Check to see if the target server even has sectors
             if (TargetServer.HasSectors)
             {
-
+                Log.Info($"Total Planets: {MyPlanets.GetPlanets().Count}");
                 //Search all planets and see if any are inside of our servers sectors
                 foreach (MyPlanet ent in MyPlanets.GetPlanets())
                 {
-                    SphereSector PlanetVolume = new SphereSector(ent.PositionComp.GetPosition(), ent.MaximumRadius);
-                    if (TargetServer.ChildSectors.Any(x => x.Contains(PlanetVolume) == ContainmentType.Disjoint))
-                        continue;
+                    
+                    SphereSector PlanetVolume = new SphereSector(ent.PositionComp.WorldAABB.Center, ent.MaximumRadius);
+                    if (RegionHandler.TryGetSmallestSector(PlanetVolume, out TreeNode<SectorAPI> smallestSector) && smallestSector.Data.OnServerID == TargetServer.ServerID)
+                        myPlanets.Add(ent);
 
-                    myPlanets.Add(ent);
                 }
+
+                foreach (var planet in myPlanets)
+                    Log.Info($"{planet.Name} is valid spawn location!");
+
+                if(myPlanets == null || myPlanets.Count == 0)
+                {
+                    Log.Fatal($"Failed to find a planet that is on the target server.");
+                    return myPlanets;
+                }
+                  
 
                 /* Now that we have a list of possible planets to spawn, we need to generate possible spawn positions and then
                  * check to see if that actual position is on our server. (Sectors and overlap/intersect planets not just be contained completely)
                  * 
                  * 
                  */
+
+
 
             }
             else
@@ -174,29 +187,59 @@ namespace NGPlugin.Scripts.ExampleScripts
             Vector3D center = planet.PositionComp.WorldAABB.Center;
             int distanceIteration = 0;
 
-            float optimalSpawnDistance = MySession.Static.Settings.OptimalSpawnDistance;
-            float minimalClearance = (optimalSpawnDistance - optimalSpawnDistance * 0.5f) * 0.9f;
 
             Vector3D globalPos = Vector3D.Zero;
 
-            for (int i = 0; i < 35; i++)
+            for (int i = 0; i < MaxIterations; i++)
             {
-                Vector3D randomPerpendicularVector = MyUtils.GetRandomVector3D();
-                float num = optimalSpawnDistance * (MyUtils.GetRandomFloat(0.54999995f, 1.65f) + (float)distanceIteration * 0.05f);
-                globalPos = randomPerpendicularVector * num;
+                MyFaction faction = MySession.Static.Factions.GetPlayerFaction(IdentityID);
+
+                //Check if there are any active faction members online and near the planet
+                if (PrioritizeFactionMembers && faction != null)
+                {
+                    foreach (var member in MySession.Static.Players.GetOnlinePlayers())
+                    {
+                        Vector3D Position = member.GetPosition();
+
+                        //Note, this just gets the CLOSEST planet. Not actually if the player is on the planet
+                        if (faction.Members.ContainsKey(member.Identity.IdentityId) && MyPlanets.Static.GetClosestPlanet(Position) == planet)
+                        {
+                            globalPos = member.GetPosition();
+                        }
+                    }
+                }
+                else
+                {
+                    Vector3D randomPerpendicularVector = MyUtils.GetRandomVector3D().Normalized();
+                    globalPos = center + (randomPerpendicularVector * planet.MaximumRadius);
+                }
+
+
                 globalPos = planet.GetClosestSurfacePointGlobal(ref globalPos);
 
-
+                //Log.Info($"Target Server: {targetServer.ServerID}. Sectors {targetServer.HasSectors}");
                 /* Check to see if position is actually in our server */
                 if (targetServer.HasSectors)
                 {
                     RegionHandler.TryGetSmallestSector(globalPos, out var sector);
+                    //Log.Info($"Position: {globalPos.ToString("0.00")}, OnServer: {sector.Data.OnServerID}");
                     if (sector.Data.OnServerID != targetServer.ServerID)
                         continue;
                 }
 
 
-                if (!TestPlanetLandingPosition(planet, globalPos, true, minimalClearance, collisionRadius, ref distanceIteration))
+                Vector3 vector = MyGravityProviderSystem.CalculateNaturalGravityInPoint(globalPos);
+                if (Vector3.IsZero(vector))
+                {
+                    vector = Vector3.Up;
+                }
+                Vector3D vector3D = Vector3D.Normalize(vector);
+                Vector3D vector3D2 = -vector3D;
+
+                //Set Spawn Height
+                globalPos = globalPos + vector3D2 * SpawnHeight;
+
+                if (!TestPlanetLandingPosition(planet, globalPos, collisionRadius, true, ref distanceIteration))
                 {
                     if (distanceIteration > 20)
                     {
@@ -204,6 +247,8 @@ namespace NGPlugin.Scripts.ExampleScripts
                     }
                     continue;
                 }
+
+
             }
 
             return globalPos;
@@ -233,7 +278,7 @@ namespace NGPlugin.Scripts.ExampleScripts
             }
             return true;
         }
-        private bool TestPlanetLandingPosition(MyPlanet planet, Vector3D landingPosition, bool testFreeZone, float minimalClearance, float collisionRadius, ref int distanceIteration)
+        private bool TestPlanetLandingPosition(MyPlanet planet, Vector3D landingPosition, float collisionRadius, bool testFreeZone, ref int distanceIteration)
         {
             if (testFreeZone && MinAirDensity > 0f && planet.GetAirDensity(landingPosition) < MinAirDensity)
             {
@@ -247,7 +292,7 @@ namespace NGPlugin.Scripts.ExampleScripts
             {
                 return false;
             }
-            if (testFreeZone && !IsZoneFree(new BoundingSphereD(landingPosition, minimalClearance)))
+            if (testFreeZone && !IsZoneFree(new BoundingSphereD(landingPosition, collisionRadius)))
             {
                 distanceIteration++;
                 return false;
