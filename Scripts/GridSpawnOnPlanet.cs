@@ -57,19 +57,14 @@ namespace NGPlugin.Scripts.ExampleScripts
             this.spawnReqMsg = spawnReqMsg;
             IdentityID = spawnReqMsg.playerOBData.First().IdentityID;
 
-            Log.Info("A");
-
             if (!RegionHandler.TryGetServer(RegionHandler.ThisServer.ServerID, out TargetServer))
                 return;
 
-            Log.Info("B");
             List<MyPlanet> allOptions = GetTargetPlanets(TargetServer);
             if(allOptions.Count <= 0)
                 return;
 
 
-
-            Log.Info("C");
             BoundingBox ShipBox = GetSpawnShipBox(spawnReqMsg.SpawningGrids);
             for (int i = 0; i < MaxIterations; i++)
             {
@@ -144,8 +139,8 @@ namespace NGPlugin.Scripts.ExampleScripts
 
                 }
 
-                foreach (var planet in myPlanets)
-                    Log.Info($"{planet.Name} is valid spawn location!");
+                //foreach (var planet in myPlanets)
+                //    Log.Info($"{planet.Name} is valid spawn location!");
 
                 if(myPlanets == null || myPlanets.Count == 0)
                 {
