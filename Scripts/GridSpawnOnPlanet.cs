@@ -31,19 +31,19 @@ namespace NGPlugin.Scripts.ExampleScripts
 
 
         /*  Following bit will prioritize spawning near faction mates over the selected enum.
-       *      If no one is online, it will continue with the SelectedOption
-       *  
-       */
+           *      If no one is online, it will continue with the SelectedOption
+           *  
+           */
 
         private bool PrioritizeFactionMembers = false; //Will attempt to spawn near online faction members on planet (WIP)
         private bool PrioritizeAtmosphere = true; //Will attempt to find a planet with atmo first
         private string TargetPlanet = ""; //Specify a target planet. Leave blank for random on server
         private float SpawnHeight = 50; //Leave 0 to spawn as close to the surface as possible
-        private float ShipCollisionRadius = 20;
         private float MinAirDensity = 0f;
         private int MaxIterations = 20;
 
 
+        /* DO NOT MODIFY BELOW */
         private Random rand = new Random(new Guid().GetHashCode());
         private ScriptSpawnMessage spawnReqMsg;
         private long IdentityID;
