@@ -40,6 +40,9 @@
     <Reference Include="NLog">
       <HintPath>TorchBinaries\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>TorchBinaries\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="Sandbox.Common">
       <HintPath>TorchBinaries\DedicatedServer64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -77,6 +80,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ModAPI\NexusAPI.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\CharacterSpawner.cs" />
