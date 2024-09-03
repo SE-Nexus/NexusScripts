@@ -21,14 +21,43 @@ namespace NexusModAPI
         public byte CurrentServerID { get; private set; }
 
         public byte CurrentClusterID { get; private set; }
-
+        
+        /// <summary>
+        /// True when the API has connected to the Racing Display mod.
+        /// Will always be false on clients.
+        /// </summary>
         public bool Enabled { get; private set; }
         private Action onEnabled;
 
+        /// <summary>
+        /// Call Unload() when done to unregister message handlers. 
+        /// Check Enabled to see if the API is communicating with Nexus.
+        /// Can only be used on the server, will not work on the client.
+        /// </summary>
+        /// <param name="onEnabled">Called once the API has connected to Nexus.</param>
         public NexusAPI(Action onEnabled = null)
         {
             this.onEnabled = onEnabled;
             MyAPIGateway.Utilities.RegisterMessageHandler(MessageId, ReceiveData);
+        }
+
+        /// <summary>
+        /// Call this method to cleanup once you are done with the Nexus API.
+        /// </summary>
+        public void Unload()
+        {
+            Enabled = false;
+            isPlayerOnline = null;
+            getTargetServer = null;
+            getTargetSector = null;
+            isServerOnline = null;
+            sendModMsgToServer = null;
+            sendModMsgToAllServers = null;
+            getAllOnlineServers = null;
+            getAllOnlinePlayers = null;
+            sendChatToDiscord = null;
+            onEnabled = null;
+            MyAPIGateway.Utilities.UnregisterMessageHandler(MessageId, ReceiveData);
         }
 
         private void ReceiveData(object obj)
