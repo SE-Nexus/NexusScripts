@@ -172,7 +172,7 @@ namespace NexusModAPI
         public void SendChatToDiscord(string message, ulong discordChannelID, bool isEmbed = false, string EmbedTitle = "", string EmbedFooter = "")
         {
             if (Enabled)
-                getAllOnlinePlayers(MyTuple.Create(message, discordChannelID, isEmbed, EmbedTitle, EmbedFooter));
+                sendChatToDiscord(MyTuple.Create(message, discordChannelID, isEmbed, EmbedTitle, EmbedFooter));
         }
         private Func<object, object> sendChatToDiscord;
 
