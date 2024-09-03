@@ -8,7 +8,7 @@ using VRageMath;
 
 namespace NexusModAPI
 {
-    internal class NexusAPI
+    public class NexusAPI
     {
         private const long MessageId = 20240902;
 
