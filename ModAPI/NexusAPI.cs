@@ -38,6 +38,7 @@ namespace NexusModAPI
         public NexusAPI(Action onEnabled = null)
         {
             this.onEnabled = onEnabled;
+            
             MyAPIGateway.Utilities.RegisterMessageHandler(MessageId, ReceiveData);
         }
 
@@ -148,7 +149,7 @@ namespace NexusModAPI
         /// <param name="modChannelID"></param>
         /// <param name="targetServer"></param>
         /// <returns></returns>
-        public bool SendModMsgToServer(byte[] data, long modChannelID, byte targetServer)
+        public bool SendModMsgToServer(byte[] data, ushort modChannelID, byte targetServer)
         {
             return Enabled && (bool)sendModMsgToServer(MyTuple.Create(data, modChannelID, targetServer));
         }
@@ -160,7 +161,7 @@ namespace NexusModAPI
         /// <param name="data"></param>
         /// <param name="modChannelID"></param>
         /// <returns></returns>
-        public bool SendModMsgToAllServers(byte[] data, long modChannelID)
+        public bool SendModMsgToAllServers(byte[] data, ushort modChannelID)
         {
             return Enabled && (bool)sendModMsgToAllServers(MyTuple.Create(data, modChannelID));
         }
@@ -385,7 +386,7 @@ namespace NexusModAPI
             public byte toServerID;
 
             [ProtoMember(25)]
-            public long targetModMessageID;
+            public ushort targetModMessageID;
 
             [ProtoMember(30)]
             public byte[] msgData;
