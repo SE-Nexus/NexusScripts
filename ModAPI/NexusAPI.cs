@@ -23,7 +23,7 @@ namespace NexusModAPI
         public byte CurrentClusterID { get; private set; }
         
         /// <summary>
-        /// True when the API has connected to the Racing Display mod.
+        /// True when the API has connected to the Nexus Plugin
         /// Will always be false on clients.
         /// </summary>
         public bool Enabled { get; private set; }
