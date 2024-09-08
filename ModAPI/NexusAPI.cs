@@ -372,6 +372,24 @@ namespace NexusModAPI
             Cross,
             Hex,
         }
+
+
+        [ProtoContract]
+        //This is the datamsg you get back on your custom nexusmod channel you registered with keen
+        public class ModAPIMsg
+        {
+            [ProtoMember(10)]
+            public byte fromServerID;
+
+            [ProtoMember(20)]
+            public byte toServerID;
+
+            [ProtoMember(25)]
+            public long targetModMessageID;
+
+            [ProtoMember(30)]
+            public byte[] msgData;
+        }
         #endregion
     }
 }

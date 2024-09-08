@@ -245,7 +245,7 @@ namespace NGPlugin.Scripts.ExampleScripts
                 return false;
 
             var node = RegionHandler.ThisCluster.SectorTree.FindTreeNode(x => x.Data.SectorID == sector.SectorID);
-            return (node.Children != null) && node.Children.Any(x => x.Data.IsInside(target));
+            return (node.Children != null) && node.Children.Any(x => x.Data.Contains(target));
         }
 
         private bool GetRandomInSearch()
