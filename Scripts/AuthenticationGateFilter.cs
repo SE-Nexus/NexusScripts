@@ -36,11 +36,10 @@ namespace NexusSpawnScripts.Scripts
                 foreach (var cockpit in grid.OccupiedBlocks.ToArray())
                 {
                     cockpit.Pilot.GetPlayerId(out var playerId);
-                    cockpit.Pilot.GetIdentity();
+                    var identity = cockpit.Pilot.GetIdentity();
                     var steamId = playerId.SteamId;
-                    var identity = MySession.Static.Players.TryGetIdentity(cockpit.Pilot.EntityId);
                     if (CheckIfSupporter(steamId.ToString())) continue;
-                    MyVisualScriptLogicProvider.SendChatMessage($"Grid owner {identity.DisplayName} is not a supporter. Can not transfer grid.", "", identity.IdentityId);
+                    MyVisualScriptLogicProvider.SendChatMessage($"Mounted player {identity.DisplayName} is not a supporter. Can not transfer grid.", "", identity.IdentityId);
                     return false;
                 }
             }
