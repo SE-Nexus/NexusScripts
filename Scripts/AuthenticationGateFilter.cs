@@ -7,7 +7,6 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.World;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using VRageMath;
 
@@ -30,6 +29,7 @@ namespace NexusSpawnScripts.Scripts
                     var identity = MySession.Static.Players.TryGetIdentity(bigOwner);
                     if (CheckIfSupporter(steamId.ToString())) continue;
                     MyVisualScriptLogicProvider.SendChatMessage($"Grid owner {identity.DisplayName} is not a supporter. Can not transfer grid.", "", identity.IdentityId);
+                    Log.Warn($"Grid owner {identity.DisplayName} is not a supporter. Can not transfer grid.");
                     return false;
                 }
 
@@ -40,6 +40,7 @@ namespace NexusSpawnScripts.Scripts
                     var steamId = playerId.SteamId;
                     if (CheckIfSupporter(steamId.ToString())) continue;
                     MyVisualScriptLogicProvider.SendChatMessage($"Mounted player {identity.DisplayName} is not a supporter. Can not transfer grid.", "", identity.IdentityId);
+                    Log.Warn($"Mounted player {identity.DisplayName} is not a supporter. Can not transfer grid.");
                     return false;
                 }
             }
@@ -61,8 +62,11 @@ namespace NexusSpawnScripts.Scripts
                 Log.Warn($"New Calculated Pos: {gridSpawnPos}");
                 //Target = Target + generatedPosition;
 
-                foreach (var gridInGroup in AllGrids.Where(gridInGroup => gridInGroup?.Physics != null))
+                foreach (var gridInGroup in AllGrids)
                 {
+                    if (gridInGroup == null || gridInGroup.Physics == null)
+                        continue;
+
                     gridInGroup.Physics.LinearVelocity = new Vector3(0, 0, 0);
                 }
             }
@@ -72,7 +76,8 @@ namespace NexusSpawnScripts.Scripts
             }
 
             //Allow it to pass
-            return false;
+            Log.Warn($"Successfully transferred {BiggestGrid.Name}, ");
+            return true;
         }
 
 
@@ -90,12 +95,10 @@ namespace NexusSpawnScripts.Scripts
 
                 response = task.GetAwaiter().GetResult();
                 var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                Log.Warn(result);
                 var json = JsonMapper.ToObject(result);
                 if (!json.ContainsKey("supporterLevel")) return false;
                 var level = (int)json["supporterLevel"];
                 var isSupporter = level > 0;
-                Log.Warn("LEVEL:" + isSupporter);
                 return isSupporter;
             }
         }
