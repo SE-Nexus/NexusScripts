@@ -220,7 +220,7 @@ namespace NexusModAPI
         public bool RemoteSpawnPadActivation(ulong user, byte targetServerID, string scriptName, string shipName, string CustomData)
         {
             if (Enabled)
-                return (bool)remoteSpawnPadActivation(MyTuple.Create(user, scriptName, shipName, CustomData));
+                return (bool)remoteSpawnPadActivation(MyTuple.Create(user, targetServerID, scriptName, shipName, CustomData));
             return false;
         }
 
