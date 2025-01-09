@@ -77,7 +77,7 @@ namespace NexusModAPI
                 getAllOnlineServers = getMethod((int)Methods.GetAllOnlineServers);
                 getAllOnlinePlayers = getMethod((int)Methods.GetAllOnlinePlayers);
                 sendChatToDiscord = getMethod((int)Methods.SendChatToDiscord);
-                remoteSpawnPadActivation = getMethod((int)Methods.RemoveSpawnPadActivation);
+                remoteSpawnPadActivation = getMethod((int)Methods.RemoteSpawnPadActivation);
 
                 ServerDataMsgAPI serverData = MyAPIGateway.Utilities.SerializeFromBinary<ServerDataMsgAPI>(data.Item1);
                 Clusters = serverData.clusters;
@@ -242,7 +242,7 @@ namespace NexusModAPI
             GetAllOnlinePlayers,
             SendChatToDiscord,
             SendChatToServers,
-            RemoveSpawnPadActivation
+            RemoteSpawnPadActivation
         }
 
 
