@@ -83,6 +83,7 @@
     <Compile Include="ModAPI\NexusAPI.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripts\ButtonPressedScript.cs" />
     <Compile Include="Scripts\CharacterSpawner.cs" />
     <Compile Include="Scripts\GridSpawnerAtPos.cs" />
     <Compile Include="Scripts\GridSpawnInSpace.cs" />

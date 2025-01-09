@@ -77,6 +77,7 @@ namespace NexusModAPI
                 getAllOnlineServers = getMethod((int)Methods.GetAllOnlineServers);
                 getAllOnlinePlayers = getMethod((int)Methods.GetAllOnlinePlayers);
                 sendChatToDiscord = getMethod((int)Methods.SendChatToDiscord);
+                remoteSpawnPadActivation = getMethod((int)Methods.RemoveSpawnPadActivation);
 
                 ServerDataMsgAPI serverData = MyAPIGateway.Utilities.SerializeFromBinary<ServerDataMsgAPI>(data.Item1);
                 Clusters = serverData.clusters;
@@ -206,6 +207,28 @@ namespace NexusModAPI
         }
         private Func<object, object> sendChatToDiscord;
 
+
+        /// <summary>
+        /// Calls the spawn pad activation on and sends the user to the target server with the spawn request
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="targetServerID"></param>
+        /// <param name="scriptName"></param>
+        /// <param name="shipName"></param>
+        /// <param name="CustomData"></param>
+        /// <returns></returns>
+        public bool RemoteSpawnPadActivation(ulong user, byte targetServerID, string scriptName, string shipName, string CustomData)
+        {
+            if (Enabled)
+                return (bool)remoteSpawnPadActivation(MyTuple.Create(user, scriptName, shipName, CustomData));
+            return false;
+        }
+
+
+        private Func<object, object> remoteSpawnPadActivation;
+
+
+
         private enum Methods
         {
             None = 0,
@@ -217,8 +240,12 @@ namespace NexusModAPI
             SendModMsgToAllServers,
             GetAllOnlineServers,
             GetAllOnlinePlayers,
-            SendChatToDiscord
+            SendChatToDiscord,
+            RemoveSpawnPadActivation
         }
+
+
+
 
         #region ServerData
         [ProtoContract]
