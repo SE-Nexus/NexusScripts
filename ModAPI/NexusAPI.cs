@@ -241,6 +241,7 @@ namespace NexusModAPI
             GetAllOnlineServers,
             GetAllOnlinePlayers,
             SendChatToDiscord,
+            SendChatToServers,
             RemoveSpawnPadActivation
         }
 
