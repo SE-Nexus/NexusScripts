@@ -174,7 +174,7 @@ namespace NGPlugin.Scripts.ExampleScripts
                 }
                 else
                 {
-                    Log.Info($"Found Planet: {foundPlanet.DisplayNameText} Spawning @ {spawnReqMsg.GridSpawnPosition.ToString()}");
+                    Log.Info($"Found Planet: {foundPlanet.StorageName} Spawning @ {spawnReqMsg.GridSpawnPosition.ToString()}");
                     return true;
                 }
             }

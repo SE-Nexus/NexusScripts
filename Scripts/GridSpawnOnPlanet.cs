@@ -61,7 +61,7 @@ namespace NGPlugin.Scripts.ExampleScripts
                 return;
 
             List<MyPlanet> allOptions = GetTargetPlanets(TargetServer);
-            if(allOptions.Count <= 0)
+            if (allOptions.Count <= 0)
                 return;
 
 
@@ -79,16 +79,16 @@ namespace NGPlugin.Scripts.ExampleScripts
 
 
 
-                Log.Info($"Attempting to spawn grids @ {pTarget.Name}. Iteration: {i}");
+                Log.Info($"Attempting to spawn grids @ {pTarget.StorageName}. Iteration: {i}");
                 Vector3D position = await AsyncInvoke.InvokeAsync(() => TryGetPlanetSpawn(pTarget, TargetServer, ShipBox.Extents.Length()));
 
                 RegionHandler.TryGetSmallestSector(position, out var sector);
                 if (sector.Data.OnServerID != TargetServer.ServerID)
                 {
-                    Log.Info($"No valid spawn position for {pTarget.Name} after {MaxIterations} attempts");
+                    Log.Info($"No valid spawn position for {pTarget.StorageName} after {MaxIterations} attempts");
                     continue;
                 }
-                    
+
 
                 //Found Valid position
                 if (position != null && position != Vector3D.Zero)
@@ -99,8 +99,8 @@ namespace NGPlugin.Scripts.ExampleScripts
             }
 
             /* Separate logic here to check if its null or no options found */
-            
-           
+
+
 
 
             return;
@@ -113,17 +113,24 @@ namespace NGPlugin.Scripts.ExampleScripts
 
             if (!string.IsNullOrEmpty(TargetPlanet))
             {
-                myPlanets = MyPlanets.GetPlanets().Where(x => x.DisplayName != null && x.DisplayName.Contains(TargetPlanet)).ToList();
+                myPlanets = MyPlanets.GetPlanets().Where(x => x.StorageName != null && x.StorageName.Contains(TargetPlanet)).ToList();
 
                 if (myPlanets == null || myPlanets.Count == 0)
-                    Log.Fatal($"Failed to find a planet with the name of: \"{TargetPlanet}\". One will be provided automatically...");
+                {
+                    Log.Fatal($"Failed to find a planet with the name of: \"{TargetPlanet}\". One will be provided automatically... Did you mean: \n");
+                    foreach (var planet in MyPlanets.GetPlanets())
+                    {
+                        Log.Fatal($"{planet.StorageName}?");
+                    }
+
+                }
                 else
                     return myPlanets;
 
 
                 myPlanets.Clear();
             }
-            
+
 
             // Check to see if the target server even has sectors
             if (TargetServer.HasSectors)
@@ -132,7 +139,7 @@ namespace NGPlugin.Scripts.ExampleScripts
                 //Search all planets and see if any are inside of our servers sectors
                 foreach (MyPlanet ent in MyPlanets.GetPlanets())
                 {
-                    
+
                     SphereSector PlanetVolume = new SphereSector(ent.PositionComp.WorldAABB.Center, ent.MaximumRadius);
                     if (RegionHandler.TryGetSmallestSector(PlanetVolume, out TreeNode<SectorAPI> smallestSector) && smallestSector.Data.OnServerID == TargetServer.ServerID)
                         myPlanets.Add(ent);
@@ -142,12 +149,12 @@ namespace NGPlugin.Scripts.ExampleScripts
                 //foreach (var planet in myPlanets)
                 //    Log.Info($"{planet.Name} is valid spawn location!");
 
-                if(myPlanets == null || myPlanets.Count == 0)
+                if (myPlanets == null || myPlanets.Count == 0)
                 {
                     Log.Fatal($"Failed to find a planet that is on the target server.");
                     return myPlanets;
                 }
-                  
+
 
                 /* Now that we have a list of possible planets to spawn, we need to generate possible spawn positions and then
                  * check to see if that actual position is on our server. (Sectors and overlap/intersect planets not just be contained completely)
