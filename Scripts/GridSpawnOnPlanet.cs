@@ -113,7 +113,7 @@ namespace NGPlugin.Scripts.ExampleScripts
 
             if (!string.IsNullOrEmpty(TargetPlanet))
             {
-                myPlanets = MyPlanets.GetPlanets().Where(x => x.StorageName != null && x.StorageName.Contains(TargetPlanet)).ToList();
+                myPlanets = MyPlanets.GetPlanets().Where(x => x.StorageName != null && x.StorageName.Contains(TargetPlanet, StringComparison.OrdinalIgnoreCase)).ToList();
 
                 if (myPlanets == null || myPlanets.Count == 0)
                 {
