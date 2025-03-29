@@ -113,7 +113,7 @@ namespace NGPlugin.Scripts.ExampleScripts
 
             if (!string.IsNullOrEmpty(TargetPlanet))
             {
-                myPlanets = MyPlanets.GetPlanets().Where(x => x.DisplayName.Contains(TargetPlanet)).ToList();
+                myPlanets = MyPlanets.GetPlanets().Where(x => x.DisplayName != null && x.DisplayName.Contains(TargetPlanet)).ToList();
 
                 if (myPlanets == null || myPlanets.Count == 0)
                     Log.Fatal($"Failed to find a planet with the name of: \"{TargetPlanet}\". One will be provided automatically...");
