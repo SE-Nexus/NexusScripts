@@ -101,11 +101,9 @@ namespace NGPlugin.Scripts.ExampleScripts
                 }
             }
 
+
             /* Separate logic here to check if its null or no options found */
             Log.Info("No Valid Spawn Position found. Try adjusting limits or playing with sector borders.");
-
-
-
             return;
         }
 
