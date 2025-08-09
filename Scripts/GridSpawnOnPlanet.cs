@@ -53,6 +53,7 @@ namespace NGPlugin.Scripts.ExampleScripts
 
         public override async Task InboundSpawnPad_Pre(ScriptSpawnMessage spawnReqMsg)
         {
+
             /* Get Target Server from Region Handler */
             this.spawnReqMsg = spawnReqMsg;
             IdentityID = spawnReqMsg.playerOBData.First().IdentityID;
@@ -68,10 +69,8 @@ namespace NGPlugin.Scripts.ExampleScripts
             BoundingBox ShipBox = GetSpawnShipBox(spawnReqMsg.SpawningGrids);
             for (int i = 0; i < MaxIterations; i++)
             {
-                //Shuffle option
-                allOptions.ShuffleList();
                 //Get first index after shuffle
-                MyPlanet pTarget = allOptions[0];
+                MyPlanet pTarget = allOptions.GetRandomItemFromList();
 
                 //Prioritize Atmo
                 if (!pTarget.HasAtmosphere && PrioritizeAtmosphere && MaxIterations > MaxIterations / 2)
@@ -82,7 +81,10 @@ namespace NGPlugin.Scripts.ExampleScripts
                 Log.Info($"Attempting to spawn grids @ {pTarget.StorageName}. Iteration: {i}");
                 Vector3D position = await AsyncInvoke.InvokeAsync(() => TryGetPlanetSpawn(pTarget, TargetServer, ShipBox.Extents.Length()));
 
-                RegionHandler.TryGetSmallestSector(position, out var sector);
+                if (!RegionHandler.TryGetSmallestSector(position, out var sector))
+                    continue;
+
+
                 if (sector.Data.OnServerID != TargetServer.ServerID)
                 {
                     Log.Info($"No valid spawn position for {pTarget.StorageName} after {MaxIterations} attempts");
@@ -99,7 +101,7 @@ namespace NGPlugin.Scripts.ExampleScripts
             }
 
             /* Separate logic here to check if its null or no options found */
-
+            Log.Info("No Valid Spawn Position found. Try adjusting limits or playing with sector borders.");
 
 
 
