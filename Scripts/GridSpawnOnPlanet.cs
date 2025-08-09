@@ -82,16 +82,22 @@ namespace NGPlugin.Scripts.ExampleScripts
                 Log.Info($"Attempting to spawn grids @ {pTarget.StorageName}. Iteration: {i}");
                 Vector3D position = await AsyncInvoke.InvokeAsync(() => TryGetPlanetSpawn(pTarget, TargetServer, ShipBox.Extents.Length()));
 
-                if (!RegionHandler.TryGetSmallestSector(position, out var sector))
-                    continue;
 
-
-                if (sector.Data.OnServerID != TargetServer.ServerID)
+                //Only run this check if the server is sectored
+                if (RegionHandler.ThisServer.SectorType == NexusAPI.ConfigAPI.ServerType.SyncedSectored)
                 {
-                    Log.Info($"No valid spawn position for {pTarget.StorageName} after {MaxIterations} attempts");
-                    continue;
+                    if (!RegionHandler.TryGetSmallestSector(position, out var sector))
+                        continue;
+
+
+                    if (sector.Data.OnServerID != TargetServer.ServerID)
+                    {
+                        Log.Info($"No valid spawn position for {pTarget.StorageName} after {MaxIterations} attempts");
+                        continue;
+                    }
                 }
 
+                
 
                 //Found Valid position
                 if (position != null && position != Vector3D.Zero)
@@ -134,7 +140,7 @@ namespace NGPlugin.Scripts.ExampleScripts
 
 
             // Check to see if the target server even has sectors
-            if (TargetServer.HasSectors)
+            if (TargetServer.SectorType == NexusAPI.ConfigAPI.ServerType.SyncedSectored)
             {
                 Log.Info($"Total Planets: {MyPlanets.GetPlanets().Count}");
                 //Search all planets and see if any are inside of our servers sectors
